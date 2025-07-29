@@ -1,6 +1,5 @@
 # DeCLAI: Decentralized Compute Credit System for Large Language Model Inference
 
-[![arXiv](https://img.shields.io/badge/arXiv-2025.XXXX-b31b1b.svg)](https://arxiv.org/abs/2025.XXXX)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Paper Status](https://img.shields.io/badge/Paper-Complete-brightgreen.svg)](https://github.com/creativeheadz/DeCLAI)
 [![Sections](https://img.shields.io/badge/Sections-10%2F10-brightgreen.svg)](https://github.com/creativeheadz/DeCLAI)
