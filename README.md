@@ -1,6 +1,5 @@
 # DeCLAI: Decentralized Compute Credit System for Large Language Model Inference
 
-[![arXiv](https://img.shields.io/badge/arXiv-2025.XXXX-b31b1b.svg)](https://arxiv.org/abs/2025.XXXX)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Paper Status](https://img.shields.io/badge/Paper-Complete-brightgreen.svg)](https://github.com/creativeheadz/DeCLAI)
 [![Sections](https://img.shields.io/badge/Sections-10%2F10-brightgreen.svg)](https://github.com/creativeheadz/DeCLAI)
@@ -127,19 +126,6 @@ This repository contains a **comprehensive, publication-ready academic paper** w
 2. **Citation**: Reference this work in related research
 3. **Collaboration**: Join discussions about democratizing AI access
 4. **Publication**: Consider for conference submission or journal publication
-
-## 📖 Citation
-
-If you find this work useful, please cite:
-
-```bibtex
-@article{trimbitas2025declai,
-  title={DeCLAI: Decentralized Compute Credit System for Large Language Model Inference},
-  author={Trimbitas, Andrei},
-  journal={arXiv preprint arXiv:2025.XXXX},
-  year={2025}
-}
-```
 
 ## 🤝 Contributing
 
