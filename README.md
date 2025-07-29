@@ -1,10 +1,11 @@
 # DeCLAI: Decentralized Compute Credit System for Large Language Model Inference
 
+[![DOI](https://img.shields.io/badge/DOI-10.13140%2FRG.2.2.21788.19848-blue)](https://doi.org/10.13140/RG.2.2.21788.19848)
+[![Preprint](https://img.shields.io/badge/Preprint-Available-brightgreen.svg)](https://doi.org/10.13140/RG.2.2.21788.19848)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Paper Status](https://img.shields.io/badge/Paper-Complete-brightgreen.svg)](https://github.com/creativeheadz/DeCLAI)
 [![Sections](https://img.shields.io/badge/Sections-10%2F10-brightgreen.svg)](https://github.com/creativeheadz/DeCLAI)
 [![References](https://img.shields.io/badge/References-195+-blue.svg)](https://github.com/creativeheadz/DeCLAI)
-[![GitHub stars](https://img.shields.io/github/stars/creativeheadz/DeCLAI.svg?style=social&label=Star)](https://github.com/creativeheadz/DeCLAI)
 
 > **Democratizing AI through Community-Driven GPU Sharing**
 > 
