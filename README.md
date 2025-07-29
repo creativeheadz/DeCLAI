@@ -141,9 +141,9 @@ This work is licensed under the MIT License - see the [LICENSE](LICENSE) file fo
 
 ## 🌐 Connect
 
-- **Author**: [Andrei Trimbitas](https://linkedin.com/in/andrei-trimbitas)
+- **Author**: [Andrei Trimbitas]([https://linkedin.com/in/andrei-trimbitas](https://www.linkedin.com/in/trimbitasav/))
 - **GitHub**: [@creativeheadz](https://github.com/creativeheadz)
-- **Email**: 55380647+creativeheadz@users.noreply.github.com
+- **Email**: a.trimbitas@oldforge.tech
 
 ---
 
