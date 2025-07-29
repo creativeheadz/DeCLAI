@@ -113,7 +113,7 @@ This repository contains a **comprehensive, publication-ready academic paper** w
    - **Technical**: [System Architecture](Section_3_System_Architecture.md), [Implementation](section_8_implementation_details.md)
    - **Economic**: [Credit Mechanisms](Section_4_Credit_Mechanism_Design.md), [Economic Analysis](section_7_economic_analysis.md)
    - **Security**: [Security & Privacy](Section_6_Security_and_Privacy.md)
-   - **Applications**: [Use Cases](section_10_use_cases.md)
+   - **Applications**: [Use Cases](section_10_Use_Cases.md)
 3. Check the [comprehensive bibliography](bibliography.md) for related work
 
 ### For Developers
