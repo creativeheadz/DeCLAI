@@ -127,19 +127,6 @@ This repository contains a **comprehensive, publication-ready academic paper** w
 3. **Collaboration**: Join discussions about democratizing AI access
 4. **Publication**: Consider for conference submission or journal publication
 
-## 📖 Citation
-
-If you find this work useful, please cite:
-
-```bibtex
-@article{trimbitas2025declai,
-  title={DeCLAI: Decentralized Compute Credit System for Large Language Model Inference},
-  author={Trimbitas, Andrei},
-  journal={arXiv preprint arXiv:2025.XXXX},
-  year={2025}
-}
-```
-
 ## 🤝 Contributing
 
 We welcome contributions from:
