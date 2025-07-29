@@ -140,6 +140,24 @@ We welcome contributions from:
 
 This work is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 📖 Citation
+
+If you find this work useful in your research, please cite:
+
+### BibTeX
+```bibtex
+@techreport{trimbitas2025declai,
+  title={DeCLAI: Decentralized Compute Credit System for Large Language Model Inference},
+  author={Trimbitas, Andrei},
+  year={2025},
+  month={July},
+  institution={Independent Research},
+  type={Technical Report},
+  doi={10.13140/RG.2.2.21788.19848},
+  url={https://doi.org/10.13140/RG.2.2.21788.19848},
+  note={Available at: \url{https://github.com/creativeheadz/DeCLAI}}
+}
+
 ## 🌐 Connect
 
 - **Author**: [Andrei Trimbitas]([https://linkedin.com/in/andrei-trimbitas](https://www.linkedin.com/in/trimbitasav/))
