@@ -90,10 +90,10 @@ This repository contains a **comprehensive, publication-ready academic paper** w
 4. **[Credit Mechanism Design](Section_4_Credit_Mechanism_Design.md)** - Game theory and economic modeling ✅
 5. **[Distributed Inference Protocol](Section_5_Distributed_Inference_Protocol.md)** - Technical implementation details ✅
 6. **[Security and Privacy](Section_6_Security_and_Privacy.md)** - Cryptographic foundations and threat analysis ✅
-7. **[Economic Analysis](section_7_economic_analysis.md)** - Sustainability and incentive compatibility ✅
-8. **[Implementation Details](section_8_implementation_details.md)** - Software architecture and deployment ✅
+7. **[Economic Analysis](section_7_Economic_Analysis.md)** - Sustainability and incentive compatibility ✅
+8. **[Implementation Details](Section_8_Implementation_Details.md)** - Software architecture and deployment ✅
 9. **[Experimental Results](Section_9_Experimental_Results.md)** - Performance validation and benchmarks ✅
-10. **[Use Cases and Social Impact](section_10_use_cases.md)** - Real-world applications and social impact ✅
+10. **[Use Cases and Social Impact](Section_10_Use_Cases.md)** - Real-world applications and social impact ✅
 
 **📋 Paper Status**: **COMPLETE** - All 10 sections finished and ready for publication
 
@@ -110,15 +110,15 @@ This repository contains a **comprehensive, publication-ready academic paper** w
 ### For Researchers
 1. Read the [complete paper overview](paper/DeCLAI_Full_Paper.md)
 2. Explore individual sections based on your interests:
-   - **Technical**: [System Architecture](Section_3_System_Architecture.md), [Implementation](section_8_implementation_details.md)
-   - **Economic**: [Credit Mechanisms](Section_4_Credit_Mechanism_Design.md), [Economic Analysis](section_7_economic_analysis.md)
+   - **Technical**: [System Architecture](Section_3_System_Architecture.md), [Implementation](Section_8_Implementation_Details.md)
+   - **Economic**: [Credit Mechanisms](Section_4_Credit_Mechanism_Design.md), [Economic Analysis](section_7_Economic_Analysis.md)
    - **Security**: [Security & Privacy](Section_6_Security_and_Privacy.md)
-   - **Applications**: [Use Cases](section_10_Use_Cases.md)
+   - **Applications**: [Use Cases](Section_10_Use_Cases.md)
 3. Check the [comprehensive bibliography](bibliography.md) for related work
 
 ### For Developers
 1. Review the [system architecture](Section_3_System_Architecture.md) for technical design
-2. Examine [implementation details](section_8_implementation_details.md) for software architecture
+2. Examine [implementation details](Section_8_Implementation_Details.md) for software architecture
 3. Study [distributed protocols](Section_5_Distributed_Inference_Protocol.md) for technical specifications
 4. Contribute to proof-of-concept development
 
