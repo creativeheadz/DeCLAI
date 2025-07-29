@@ -90,7 +90,7 @@ This repository contains a **comprehensive, publication-ready academic paper** w
 4. **[Credit Mechanism Design](Section_4_Credit_Mechanism_Design.md)** - Game theory and economic modeling ✅
 5. **[Distributed Inference Protocol](Section_5_Distributed_Inference_Protocol.md)** - Technical implementation details ✅
 6. **[Security and Privacy](Section_6_Security_and_Privacy.md)** - Cryptographic foundations and threat analysis ✅
-7. **[Economic Analysis](section_7_Economic_Analysis.md)** - Sustainability and incentive compatibility ✅
+7. **[Economic Analysis](Section_7_Economic_Analysis.md)** - Sustainability and incentive compatibility ✅
 8. **[Implementation Details](Section_8_Implementation_Details.md)** - Software architecture and deployment ✅
 9. **[Experimental Results](Section_9_Experimental_Results.md)** - Performance validation and benchmarks ✅
 10. **[Use Cases and Social Impact](Section_10_Use_Cases.md)** - Real-world applications and social impact ✅
