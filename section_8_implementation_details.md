@@ -2,19 +2,24 @@
 
 ## 8.1 Software Architecture Overview
 
-The DeCLAI system employs a microservices architecture built on cloud-native principles, designed to scale from hundreds to millions of participating nodes while maintaining the simplicity essential for community adoption [101][102]. The architecture follows a layered approach where each component can be independently developed, deployed, and scaled, reflecting the distributed nature of the compute resources themselves.
+The DeCLAI system is split into two tiers with very different operational profiles:
 
-The system consists of five primary service layers: the **Gateway Layer** handling regional coordination and load balancing, the **Orchestration Layer** managing inference requests and resource allocation, the **Compute Layer** abstracting heterogeneous GPU resources, the **Credit Layer** maintaining the non-monetary credit system, and the **Discovery Layer** enabling peer-to-peer node discovery and health monitoring. This separation of concerns ensures that individual components can evolve independently while maintaining system-wide consistency [29].
+- **Coordination tier** — the regional gateways, cluster orchestrators, credit ledger, and discovery service. These are server-side components that can sensibly run as containerised microservices in a small datacenter or cloud footprint operated by a non-profit foundation, university consortium, or volunteer operators. This is where Kubernetes-class orchestration applies.
+- **Contributor tier** — the individual GPU machines that perform inference. These run on residential or lab hardware behind NAT, with asymmetric upload bandwidth (typically 10–50 Mbps), dynamic IP allocation, ISP terms that often discourage running servers, and physical operators who power machines on and off at will. A contributor node runs a single long-lived process that registers with a gateway, accepts work assignments, and returns results — *not* a Kubernetes cluster of its own.
 
-Each service is containerized using Docker [101] and orchestrated through Kubernetes [102], enabling deployment across diverse infrastructure environments from university clusters to individual contributor machines. The architecture explicitly avoids single points of failure by implementing redundancy at every layer, with regional gateways providing failover capabilities and distributed consensus ensuring system-wide consistency even during network partitions [75].
+Earlier drafts of this paper described the contributor tier as if it ran Kubernetes deployments on individual contributor machines. That is not realistic for residential deployment and is not how the protocol is intended to work. The two-tier split is essential to the design and is reflected throughout the implementation discussion below [101][102].
+
+The architecture aims to avoid single points of failure within the coordination tier through redundant gateways and a replicated credit ledger; full availability under arbitrary partition is not possible (the CAP theorem applies), and the ledger therefore prioritises consistency over availability during partition, with the operational consequence that consumers in a partitioned region may experience temporary read-only access to their credit balance until the partition heals [75].
 
 ## 8.2 Technology Stack and Justifications
 
-The technology stack selection prioritizes performance, reliability, and accessibility for community contributors. The core services are implemented in Rust [116] for system-level components requiring maximum performance and memory safety, particularly the credit validation engine and inference coordination services. Rust's ownership model eliminates entire classes of memory safety bugs while providing zero-cost abstractions essential for high-throughput distributed systems.
+The technology stack is partitioned between the two tiers described above. The choices below are working defaults rather than fixed requirements; an implementation that meets the protocol interfaces can substitute any of these.
 
-Python [117] serves as the primary language for machine learning integration and user-facing APIs, leveraging the extensive ecosystem of ML libraries and ensuring accessibility for researchers and developers. The inference workers utilize PyTorch [73] and support automatic conversion to ONNX format [74] for cross-framework compatibility. Go [118] implements network-intensive services such as the peer discovery protocol and gateway coordination, taking advantage of its excellent concurrency primitives and networking libraries.
+**Coordination tier.** The gateway, orchestrator, and credit-ledger services are implemented in Rust [116] where memory safety and throughput matter (credit validation, BFT message handling), and in Go [118] where concurrency primitives and networking are the dominant concern (peer discovery, gossip). Inter-service communication uses gRPC [103]; external client-facing APIs are REST over HTTP/2 (we do not also expose JSON-RPC — supporting two parallel API surfaces is friction without benefit). Kafka [104] is used for asynchronous event streams (credit transactions, audit logs); Redis [105] serves as the metadata cache. The ledger uses an etcd-style consistent store within each region; cross-region synchronisation is described in §8.4.
 
-Inter-service communication relies on gRPC [103] for high-performance, strongly-typed communication between internal services, while external APIs expose both REST and JSON-RPC [114] interfaces for maximum compatibility. Apache Kafka [104] provides the event streaming backbone, enabling asynchronous processing of inference requests and credit transactions with guaranteed delivery semantics. Redis [105] serves as the distributed cache and session store, providing sub-millisecond access to frequently requested model metadata and user session information.
+**Contributor tier.** Contributor nodes run a single Python [117] inference worker process built on PyTorch [73], with model loading from a quantised on-disk format (we suggest GGUF or a similar quantised format with mmap-friendly layout). The worker is a long-lived TCP client that maintains an outbound connection to its assigned gateway; this avoids the NAT-traversal complications of inbound connections from the gateway side. We do *not* require contributors to run Docker, Kubernetes, or any orchestration; a single binary or Python entry point is the deployment target.
+
+**Justifications.** The split avoids the cargo-cult buzzword stack that an earlier draft of this section presented. Specifically: Rust is justified where it actually matters (validation hot path, BFT message handling); Python is justified where the PyTorch ecosystem makes alternatives impractical; Go is justified for the network-heavy gateway services. Kafka and Redis live in the coordination tier where their operational requirements are reasonable. We do not claim "sub-millisecond" anything as a system property — inference latency dominates by 3–6 orders of magnitude.
 
 ## 8.3 API Design and Interface Specifications
 
@@ -47,11 +52,11 @@ class DeCLAIClient:
         return self._register_contributor(node)
 ```
 
-The API abstracts the complexity of distributed inference while exposing necessary controls for quality of service. Protocol Buffers [113] define the internal message formats, ensuring efficient serialization and strong typing across service boundaries. The API versioning strategy follows semantic versioning with backward compatibility guarantees for at least two major versions.
+The API abstracts the complexity of distributed inference while exposing necessary controls for quality of service. Protocol Buffers [113] define the internal message formats, ensuring efficient serialization and strong typing across service boundaries. The API versioning strategy is semantic-versioned: minor and patch releases preserve compatibility, and the system supports at least the current and previous major API version concurrently so clients have a deprecation window before forced migration.
 
 ## 8.4 Core Component Implementation
 
-The **Credit Management Service** implements the non-monetary credit system using a hybrid approach combining local ledgers with periodic global synchronization. Each regional gateway maintains a local credit ledger using etcd [109] for consistency, with inter-gateway synchronization occurring through a gossip protocol based on epidemic algorithms [38].
+The **Credit Management Service** implements the non-monetary credit accounting using a per-region authoritative ledger backed by etcd [109] (a strongly-consistent store within a region). Cross-region synchronization is *not* a gossip protocol — a gossip-replicated credit ledger is eventually consistent and admits double-spending across partitions, which is unacceptable for credit accounting. Instead, each credit transaction is anchored to a "home region" determined by the requester's account, and cross-region settlement uses a two-phase protocol with the home region as the authoritative coordinator. Gossip is used only for non-authoritative state (peer discovery, health telemetry, reputation propagation) where eventual consistency is appropriate [38].
 
 ```rust
 // Credit validation implementation
@@ -123,12 +128,14 @@ Performance optimization focuses on three critical areas: network latency, compu
 
 **Resource Utilization**: Intelligent scheduling algorithms consider contributor availability patterns, implementing predictive scaling that anticipates demand fluctuations. The system maintains a reserve capacity pool for high-priority requests while maximizing utilization of contributed resources during peak hours.
 
-## 8.7 Deployment Configuration and Infrastructure
+## 8.7 Deployment — Coordination Tier vs Contributor Tier
 
-The deployment architecture supports multiple operational modes: **Development Mode** for local testing and experimentation, **Regional Mode** for university or organizational deployments, and **Global Mode** for full network participation. Each mode provides appropriate security and performance characteristics for its intended use case.
+The deployment story is qualitatively different for the two tiers introduced in §8.1.
+
+**Coordination tier.** Regional gateways, the credit ledger, the orchestrator, and the discovery service run as containerised services in a small datacenter or cloud footprint. Kubernetes is a reasonable orchestration choice here; an example gateway deployment is shown below. Service discovery uses Consul [108]; metrics and alerting use Prometheus [106] / Grafana [107].
 
 ```yaml
-# Kubernetes deployment configuration example
+# Coordination-tier gateway deployment (Kubernetes)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -148,7 +155,7 @@ spec:
             memory: "1Gi"
             cpu: "500m"
           limits:
-            memory: "2Gi" 
+            memory: "2Gi"
             cpu: "1000m"
         env:
         - name: REGION
@@ -157,7 +164,28 @@ spec:
           value: "credit-service:8080"
 ```
 
-The infrastructure configuration emphasizes horizontal scalability and fault tolerance. Service mesh architecture using Consul [108] provides service discovery and health checking, while Prometheus [106] and Grafana [107] enable comprehensive monitoring and alerting. The deployment supports both cloud-native environments and on-premises installations, accommodating diverse institutional requirements.
+**Contributor tier.** A contributor runs a single binary (or `python -m declai.worker`) on a machine that has at least one supported GPU. The worker establishes an outbound TLS connection to a configured gateway, registers its declared capability, and processes work assignments until shutdown. There is no Kubernetes, no Docker required, no inbound port to open on the contributor's router, and no service mesh — a contributor's deployment story must be simpler than a datacenter operator's, or contributors will not run it. Example:
+
+```bash
+# Contributor-tier deployment (single binary)
+$ declai-worker \
+    --gateway gw.us-west.declai.example \
+    --gpu-device 0 \
+    --max-hours-per-day 6 \
+    --quiet-hours 22:00-08:00
+```
+
+**Operational modes.** *Development mode* runs both tiers on one machine for testing. *Regional mode* runs the coordination tier on institutional infrastructure (e.g. a university), with contributors from the same institution. *Federated mode* runs multiple regional coordination tiers connected through the cross-region settlement protocol described in §8.4, with contributors from the open internet.
+
+### 8.7.1 Residential network constraints
+
+The contributor tier operates under real constraints that the protocol must respect:
+
+- **Outbound-only connections.** Most residential networks are NAT'd and many ISPs prohibit running inbound-listening services in their terms of use. DeCLAI's worker uses only outbound long-lived connections to gateways; the gateway pushes work assignments down these existing connections.
+- **Asymmetric bandwidth.** Typical residential broadband offers 100–1000 Mbps download and 10–50 Mbps upload. Pipeline-parallel inference moves megabyte-scale activation tensors per layer per token; on a 50 Mbps uplink, this caps tokens per second per worker for large-model pipelines and shapes the model-sharding decisions in §5.3.
+- **Dynamic IPs.** Residential IPs change periodically; the worker re-registers its identity (a stable public key, not its IP) on reconnect.
+- **Power and thermals.** Contributors typically restrict participation to off-hours and may want hard limits on daily contribution hours and per-day energy budget. The `--max-hours-per-day` and `--quiet-hours` flags above are first-class CLI options, not afterthoughts.
+- **ISP terms of service.** Some ISP contracts prohibit "commercial use" of residential service; non-monetary credit contribution sits in a grey area that varies by ISP and jurisdiction. We do not claim to resolve this; we recommend that institutional contributors (universities, labs) be the dominant deployment surface and that residential participation be supported but not assumed.
 
 ## 8.8 Open Source Strategy and Governance Model
 
