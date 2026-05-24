@@ -3,40 +3,35 @@
 [![DOI](https://img.shields.io/badge/DOI-10.13140%2FRG.2.2.21788.19848-blue)](https://doi.org/10.13140/RG.2.2.21788.19848)
 [![Preprint](https://img.shields.io/badge/Preprint-Available-brightgreen.svg)](https://doi.org/10.13140/RG.2.2.21788.19848)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Paper Status](https://img.shields.io/badge/Paper-Complete-brightgreen.svg)](https://github.com/creativeheadz/DeCLAI)
-[![Sections](https://img.shields.io/badge/Sections-10%2F10-brightgreen.svg)](https://github.com/creativeheadz/DeCLAI)
-[![References](https://img.shields.io/badge/References-195+-blue.svg)](https://github.com/creativeheadz/DeCLAI)
+[![Paper Status](https://img.shields.io/badge/Paper-Design%20proposal-yellow.svg)](https://github.com/creativeheadz/DeCLAI)
+[![Implementation](https://img.shields.io/badge/Implementation-None%20yet-lightgrey.svg)](https://github.com/creativeheadz/DeCLAI)
 
-> **Democratizing AI through Community-Driven GPU Sharing**
-> 
-> *A revolutionary system that enables community-driven GPU sharing for AI inference using a pure credit system—like SETI@home but for Large Language Models.*
+> **A design proposal for community-shared GPU sharing for LLM inference, based on a non-monetary credit mechanism.**
+>
+> Inspired by SETI@home, Folding@home, and the BOINC volunteer-computing tradition, rather than by tokenised compute markets.
 
-## 🌟 Overview
+## What this repository is
 
-DeCLAI addresses the critical problem of AI accessibility by creating a decentralized network where individuals and institutions can share GPU resources through a non-monetary credit system. Contributors earn credits by sharing their computational resources and can use these credits to access distributed AI inference across the community network.
+This repository contains a **design-proposal paper** for a decentralised LLM-inference network — DeCLAI. It does **not** contain an implementation, benchmark data, or measurements from a deployed network. Section 9 is a *projected performance and planned evaluation protocol*, not experimental results. Many figures in earlier drafts of this README and the paper were withdrawn or hedged in the 2026-05 revision after an adversarial peer-review pass; see [`REVIEW.md`](REVIEW.md) and [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) for the audit trail.
 
-### Key Principles
-- **🚫 Non-monetary**: Pure credit system (1 GPU-hour contributed = 1 GPU-hour earned)
-- **🌍 Community-driven**: Anyone can join with consumer GPUs
-- **📍 Geographic clustering**: Optimized for low latency
-- **🔒 No speculation**: No cryptocurrency, trading, or financial speculation
-- **🤝 Mutual aid**: Like a "blood bank" for compute resources
+### Key design principles
+- **Non-monetary**: a credit system where earned credits can only be redeemed by the same principal for inference, not traded, sold, or exchanged for fiat.
+- **Volunteer-style participation**: anyone with a consumer GPU can join, subject to the real residential-network constraints discussed in §8.
+- **Geographic clustering**: latency budgets shape how inference is partitioned across nodes.
+- **No token, no speculation**: no cryptocurrency, no secondary market, no investor narrative.
+- **Mutual aid framing**: the social model is closer to volunteer scientific computing or a "blood bank for compute" than to a market.
 
-## 🎯 The Problem
+## What problem the paper is responding to
 
-Current AI infrastructure creates a stark divide:
-- **GPU costs**: NVIDIA H100s cost $25,000+ each
-- **Cloud expenses**: Training runs cost $50,000-$100,000
-- **Access barriers**: 90% of researchers lack adequate computational resources
-- **Innovation bottleneck**: Breakthrough AI research concentrated in well-funded institutions
+Frontier-scale AI research now requires GPU resources concentrated in a small number of well-funded organisations. Datacenter accelerators such as the NVIDIA H100 sell for tens of thousands of dollars on the secondary market; cloud GPU pricing puts sustained large-model training and high-throughput inference outside the reach of many academic groups. The paper does **not** claim a precise share of researchers locked out (the "90%" figure cited in earlier drafts was not backed by an identifiable source and has been withdrawn). The argument is qualitative: the structural cost of this concentration is high enough to justify exploring volunteer-style alternatives.
 
-## 💡 The Solution
+## What the paper proposes
 
-DeCLAI creates a decentralized network that:
-- **Pools consumer GPUs** into a powerful distributed system
-- **Rewards contribution** through a fair credit mechanism
-- **Enables collaboration** across geographic and institutional boundaries
-- **Democratizes access** to state-of-the-art AI capabilities
+A community-shared inference network in which:
+- contributors run a single binary on their GPU machine and earn credits proportional to (validated) work done;
+- consumers spend credits to obtain inference; credits cannot be transferred between principals;
+- result validation uses redundant execution with floating-point tolerance, not zk-proofs (which are not yet deployable at LLM scale — see §6);
+- security is sized for a Byzantine-fraction-below-one-third assumption with explicit acknowledgement of the open Sybil-resistance problem.
 
 ## 🏗️ System Architecture
 
@@ -58,73 +53,42 @@ DeCLAI creates a decentralized network that:
    └─────────────┘        └─────────────┘        └─────────────┘
 ```
 
-## 📊 Impact Potential
+## Potential impact — qualitative
 
-### Academic Research
-- **3,150% increase** in computational access for resource-constrained researchers
-- **Global collaboration** on previously impossible research projects
-- **Democratized education** with hands-on AI experience
+The paper sketches several application domains in §10 (academic research, global health surveillance, climate modelling, startup development, research in lower-resourced regions). For each, §10 describes the *mechanism* by which a community-shared inference network could broaden access. Earlier drafts of this README presented a set of headline percentages ("3,150% access increase," "40–60% timeline reduction," "30–40% carbon reduction," "50–70% cost reduction"). These figures were **withdrawn or hedged in the 2026-05 revision** because they reflected toy arithmetic or unsourced projections, not measurements. The revised §10 either shows the derivation explicitly with sensitivity callouts, or uses qualitative language ("could substantially lower," "order-of-magnitude") rather than specific percentages. We do not currently have empirical evidence to support any specific impact number.
 
-### Global Health
-- **40-60% reduction** in health research timelines
-- **24-hour research infrastructure** spanning time zones
-- **Privacy-preserving** collaborative analysis
+## Paper structure
 
-### Climate Science
-- **30-40% reduction** in AI research carbon emissions
-- **Distributed climate modeling** with global participation
-- **Sustainable research** practices
+1. **[Introduction](Section_1_Introduction.md)** — the access concentration problem and the design we propose
+2. **[Related Work](Section_2_Related_Work.md)** — volunteer computing (BOINC, SETI@home, Folding@home); tokenised compute markets (Bittensor, io.net, Gensyn, Akash); decentralised LLM systems (Petals, Hivemind, SWARM, DiLoCo)
+3. **[System Architecture](Section_3_System_Architecture.md)** — three-tier topology and operating envelope under residential constraints
+4. **[Credit Mechanism Design](Section_4_Credit_Mechanism_Design.md)** — credit accounting, validation, and an honest discussion of which properties are proven vs conjectured vs left to future work
+5. **[Distributed Inference Protocol](Section_5_Distributed_Inference_Protocol.md)** — ε-tolerance redundant execution, model sharding, and validation
+6. **[Security and Privacy](Section_6_Security_and_Privacy.md)** — Byzantine threat model with f < n/3; explicit acknowledgement of which cryptographic primitives are research directions vs deployable today
+7. **[Economic Analysis](section_7_economic_analysis.md)** — bookkeeping, static balance, and open dynamic-stability questions
+8. **[Implementation Details](section_8_implementation_details.md)** — coordination tier vs contributor tier; residential network constraints
+9. **[Projected Performance and Planned Evaluation](Section_9_Experimental_Results.md)** — design projections and the evaluation that would have to be run to validate them (no measurements have been collected)
+10. **[Use Cases](section_10_Use_Cases.md)** — illustrative scenarios with explicit "not measured" labelling
 
-### Startup Innovation
-- **50-70% reduction** in AI development costs
-- **Community collaboration** and knowledge sharing
-- **Accessible AI** for social impact ventures
+Supporting:
+- **[Bibliography](Bibliography.md)** — IEEE-format citations with a hygiene-notes appendix listing known issues
+- **[REVIEW.md](REVIEW.md)** — full adversarial peer-review findings that prompted the 2026-05 revision
+- **[KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md)** — concise list of what the paper does and does not currently support
 
-## 📚 Complete Academic Paper
+## Status
 
-This repository contains a **comprehensive, publication-ready academic paper** with all sections:
+This is a **design proposal**, not a deployed system. The 2026-05 revision pulled the paper back from claims it did not support. The most useful contributions readers can make are:
 
-1. **[Introduction](Section_1_Introduction.md)** - The AI accessibility crisis and democratic alternative ✅
-2. **[Related Work](Section_2_Related_Work.md)** - Distributed computing and resource sharing systems ✅
-3. **[System Architecture](Section_3_System_Architecture.md)** - Technical design and scalability analysis ✅
-4. **[Credit Mechanism Design](Section_4_Credit_Mechanism_Design.md)** - Game theory and economic modeling ✅
-5. **[Distributed Inference Protocol](Section_5_Distributed_Inference_Protocol.md)** - Technical implementation details ✅
-6. **[Security and Privacy](Section_6_Security_and_Privacy.md)** - Cryptographic foundations and threat analysis ✅
-7. **[Economic Analysis](section_7_economic_analysis.md)** - Sustainability and incentive compatibility ✅
-8. **[Implementation Details](section_8_implementation_details.md)** - Software architecture and deployment ✅
-9. **[Experimental Results](Section_9_Experimental_Results.md)** - Performance validation and benchmarks ✅
-10. **[Use Cases and Social Impact](section_10_Use_Cases.md)** - Real-world applications and social impact ✅
+- Critique of the design at the level of architecture, threat model, or economic mechanism
+- Implementation work — there is currently no reference implementation
+- Pointers to prior art that should be in §2 but is not
+- Identification of remaining unsupported claims that the 2026-05 revision missed
 
-## 🚀 Getting Started
+If you are evaluating this paper for citation, please cite it as a design proposal (technical report) rather than as empirical work.
 
-### For Researchers
-1. Read the [complete paper overview](paper/DeCLAI_Full_Paper.md)
-2. Explore individual sections based on your interests:
-   - **Technical**: [System Architecture](Section_3_System_Architecture.md), [Implementation](section_8_implementation_details.md)
-   - **Economic**: [Credit Mechanisms](Section_4_Credit_Mechanism_Design.md), [Economic Analysis](section_7_economic_analysis.md)
-   - **Security**: [Security & Privacy](Section_6_Security_and_Privacy.md)
-   - **Applications**: [Use Cases](section_10_Use_Cases.md)
-3. Check the [comprehensive bibliography](Bibliography.md) for related work
+## Contributing
 
-### For Developers
-1. Review the [system architecture](Section_3_System_Architecture.md) for technical design
-2. Examine [implementation details](section_8_implementation_details.md) for software architecture
-3. Study [distributed protocols](Section_5_Distributed_Inference_Protocol.md) for technical specifications
-4. Contribute to proof-of-concept development
-
-### For Academic Community
-1. **Peer Review**: Provide feedback on technical accuracy and methodology
-2. **Citation**: Reference this work in related research
-3. **Collaboration**: Join discussions about democratizing AI access
-4. **Publication**: Consider for conference submission or journal publication
-
-## 🤝 Contributing
-
-We welcome contributions from:
-- **Researchers** interested in distributed AI systems
-- **Developers** passionate about democratizing technology
-- **Institutions** seeking collaborative computing solutions
-- **Anyone** who believes AI should be accessible to all
+Contributions are welcome from researchers, engineers, and operators interested in volunteer-style distributed inference. The most useful contributions right now are critique of the design and pointers to relevant prior art — implementation work is not yet started.
 
 ## 📄 License
 
@@ -157,6 +121,4 @@ If you find this work useful in your research, please cite:
 
 ---
 
-*"The future of AI should not be determined by who can afford the most GPUs, but by who has the best ideas and the strongest commitment to human benefit."*
-
-**⭐ Star this repository if you believe in democratizing AI access!**
+*Last substantial revision: 2026-05. The 2026-05 revision applied an adversarial peer-review pass and pulled the paper back from a number of claims it did not support; see [`REVIEW.md`](REVIEW.md) and [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md).*

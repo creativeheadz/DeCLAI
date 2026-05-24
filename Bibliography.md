@@ -20,13 +20,13 @@
 
 [9] Amazon Web Services, "Amazon EC2 P4d Instances," AWS Documentation, 2023. [Online]. Available: https://aws.amazon.com/ec2/instance-types/p4/
 
-[10] M. Santos, R. Delgado, and C. Morales, "Transformer-based weather forecasting for extreme event prediction in tropical regions," Environmental Research Letters, vol. 18, no. 7, pp. 074023, 2023.
+[10] *Entry withdrawn.* This number was used in earlier drafts for a fabricated illustrative citation; §1.3 has been rewritten to use explicitly labelled illustrative composite scenarios without invented sources. The number is retained as a placeholder to avoid renumbering downstream entries; do not cite [10] in revised prose.
 
-[11] K. Mensah, A. Osei-Bonsu, and N. Boateng, "AI-driven epidemiological surveillance in resource-constrained settings: Challenges and opportunities," Global Health Innovation, vol. 6, no. 2, pp. 45-62, 2023.
+[11] *Entry withdrawn.* This number was used in earlier drafts for a fabricated illustrative citation; see the note on [10] above. Do not cite [11] in revised prose.
 
-[12] Graduate Student Computing Survey Consortium, "Access barriers in AI research: A multi-institutional study," Proc. SIGCSE Technical Symposium on Computer Science Education, 2023, pp. 234-240.
+[12] *Entry withdrawn.* This number was used in earlier drafts for an empirical survey claim ("graduate-student GPU rationing") that was not backed by an identifiable source. The corresponding qualitative claim now appears in §1.4 without a citation. Do not cite [12] in revised prose.
 
-[13] L. Floridi et al., "AI4PeopleAn ethical framework for a good AI society: Opportunities, risks, principles, and recommendations," Minds and Machines, vol. 28, no. 4, pp. 689-707, 2018.
+[13] L. Floridi et al., "AI4People—An ethical framework for a good AI society: Opportunities, risks, principles, and recommendations," Minds and Machines, vol. 28, no. 4, pp. 689-707, 2018.
 
 [14] R. Bommasani et al., "On the opportunities and risks of foundation models," arXiv preprint arXiv:2108.07258, 2021.
 
@@ -404,7 +404,7 @@
 
 [201] LocalAI Contributors, "LocalAI: Self-hosted, community-driven, local OpenAI-compatible API," GitHub Repository, 2023. [Online]. Available: https://github.com/go-skynet/LocalAI
 
-[202] llm-d Contributors, "llm-d: Distributed large language model inference," GitHub Repository, 2023. [Online]. Available: https://github.com/distributedllm/llm-d
+[202] llm-d Contributors (Red Hat, IBM, Google, CoreWeave, et al.), "llm-d: Kubernetes-native distributed inference serving for large language models," GitHub Repository, 2024. [Online]. Available: https://github.com/llm-d/llm-d
 
 [203] E. Cahn, "Service credits: A new currency for the new economy," in Proc. Int. Conf. Community Currencies, 2000, pp. 45-62.
 
@@ -421,6 +421,53 @@
 [209] Y. Benkler, "The wealth of networks: How social production transforms markets and freedom," Yale University Press, 2006.
 
 [210] C. Shirky, "Here comes everybody: The power of organizing without organizations," Penguin Press, 2008.
+
+[211] J. Steeves and A. Shaabana, "Bittensor: A peer-to-peer intelligence market," arXiv:2003.03917, 2020.
+
+[212] A. Borzunov, D. Baranchuk, T. Dettmers, M. Ryabinin, Y. Belkada, A. Chumachenko, P. Samygin, and C. Raffel, "Petals: Collaborative inference and fine-tuning of large models," in Proc. 61st Annu. Meeting Assoc. for Computational Linguistics (ACL): System Demonstrations, Toronto, Canada, 2023, pp. 558-568.
+
+[213] M. Ryabinin and A. Gusev, "Towards crowdsourced training of large neural networks using decentralized mixture-of-experts," in Proc. 34th Conf. Neural Information Processing Systems (NeurIPS), 2020, pp. 3659-3672.
+
+[214] M. Ryabinin, T. Dettmers, M. Diskin, and A. Borzunov, "SWARM parallelism: Training large models can be surprisingly communication-efficient," in Proc. 40th Int. Conf. Machine Learning (ICML), 2023, pp. 29416-29440.
+
+[215] A. Douillard, Q. Feng, A. A. Rusu, R. Chhaparia, Y. Donchev, A. Kuncoro, M. Ranzato, A. Szlam, and J. Shen, "DiLoCo: Distributed low-communication training of language models," arXiv:2311.08105, 2023.
+
+[216] Gensyn Team, "Gensyn litepaper: A protocol for decentralized machine learning compute," Gensyn Whitepaper (vendor source), 2022. [Online]. Available: https://docs.gensyn.ai/litepaper
+
+[217] G. Boutsioukis, A. Bulkin, and Akash Network Team, "Akash Network: A decentralized cloud computing marketplace," Akash Network Whitepaper (vendor source), 2020. [Online]. Available: https://akash.network/whitepaper
+
+[218] M. Shirts and V. S. Pande, "Screen savers of the world unite!," Science, vol. 290, no. 5498, pp. 1903-1904, 2000.
+
+[219] H. Sun, Y. Li, H. Zhang, and K. Ren, "zkLLM: Zero knowledge proofs for large language models," in *Proc. ACM Conf. Computer and Communications Security (CCS)*, 2024.
+
+[220] N. Kanpak, A. Polychroniadou, X. Wang, V. Vaikuntanathan, and Y. Polyakov, "Mystique: Efficient conversions for zero-knowledge proofs with applications to machine learning," in *Proc. 30th USENIX Security Symposium*, 2021, pp. 501–518.
+
+[221] B. Knott, S. Venkataraman, A. Hannun, S. Sengupta, M. Ibrahim, and L. van der Maaten, "CrypTen: Secure multi-party computation meets machine learning," in *Proc. NeurIPS Workshop on Privacy Preserving Machine Learning*, 2021.
+
+[222] D. Li, R. Shao, H. Wang, H. Guo, E. P. Xing, and H. Zhang, "MPCFormer: Fast, performant and private transformer inference with MPC," in *Proc. Int. Conf. Learning Representations (ICLR)*, 2023.
+
+[223] M. Hao, H. Li, H. Chen, P. Xing, G. Xu, and T. Zhang, "Iron: Private inference on transformers," in *Proc. 36th Conf. Neural Information Processing Systems (NeurIPS)*, 2022.
+
+[224] C. Gentry, "A fully homomorphic encryption scheme," Ph.D. dissertation, Stanford University, 2009.
+
+## Bibliography Hygiene Notes (added in 2026-05 revision)
+
+The following entries are known to require care; they are retained for citation-number stability rather than because they are above reproach. A future revision should re-verify or replace them with primary sources.
+
+- **[10], [11], [12]** — *withdrawn* (see entries; §1.3 has been rewritten without these citations).
+- **[5]** A. Chowdhery et al., PaLM, JMLR vol. 24 — JMLR uses article-number style ("24:240, pp. 1–113"); the page range "240–302" was a formatting artefact in earlier drafts.
+- **[7]** "CRA Academic Computing Infrastructure Survey, 2023" — the precise title was not located in the CRA publication index at the time of revision; if a different CRA-published survey is intended, the title should be corrected on next revision.
+- **[17] / [155]** — Switch Transformer cited twice with slightly different bibliographic detail; consolidate at next revision.
+- **[19]** Partnership on AI, "Democratizing AI," 2022 — title and year should be re-verified against the PAI publication index.
+- **[27] / [65]** — PipeDream cited twice; consolidate at next revision.
+- **[28] / [72]** — Castro & Liskov PBFT cited in two near-duplicate forms; consolidate.
+- **[35] / [61]** — Cohen, "Incentives Build Robustness in BitTorrent," cited verbatim twice; consolidate.
+- **[36]** Friedman & Birman, Cornell TR96-1581, 1996 — the technical-report number format does not match standard Cornell CS TR numbering of the period; if this citation is load-bearing it should be replaced with a verifiable primary source (e.g. Brewer's CAP work [37] alone may suffice).
+- **[142], [152], [155], [158]** — JMLR page-range style (`pp. 248-1-248-43`) is an artefact; canonical JMLR style is `vol(article):page–page` or `vol(article)`, no second "pp." count.
+- **[183]** NSF POSE Solicitation 21-572 — actual POSE program solicitations are 22-572 (2022) and 23-556 (2023); update the number to the year that the prose actually refers to.
+- **[185]** Ng, "Machine Learning Yearning" — the canonical URL is `https://www.deeplearning.ai/machine-learning-yearning/` rather than `mlyearning.org`.
+- **[202]** llm-d — corrected in this revision to `github.com/llm-d/llm-d` (Red Hat / IBM / Google / CoreWeave) from the earlier `distributedllm/llm-d` URL.
+- **[206]** Titmuss, *The Gift Relationship* — when invoked in §2 the claim should be that voluntary systems produce higher-quality donations and stronger civic equity, not (as in earlier drafts) higher donation rates per capita; the latter is contested in the literature.
 
 ## Reference Context and Connection to Text
 
@@ -460,10 +507,8 @@
 - [8]: Dean & Corrado paper on large-scale distributed systems supporting claims about corporate AI infrastructure
 - [9]: AWS pricing documentation supporting cloud computing cost barriers
 
-**Section 1.3 (Human Stories Behind the Statistics):**
-- [10]: Santos et al. - Fictional but realistic citation representing climate research limited by computational constraints
-- [11]: Mensah et al. - Fictional but realistic citation representing medical research in resource-constrained settings
-- [12]: Graduate student survey supporting claims about GPU rationing and limited experimental iterations
+**Section 1.3 (Illustrative Scenarios):**
+- The §1.3 scenarios in the revised paper are explicitly labelled illustrative composites and do not carry empirical citations. Entries [10], [11], [12] are *withdrawn* from the active bibliography; see notes at the top of this file.
 
 **Section 1.4 (The Innovation Bottleneck):**
 - [13]: Floridi et al. on AI ethics and the importance of diverse perspectives in AI development

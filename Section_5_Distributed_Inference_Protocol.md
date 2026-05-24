@@ -10,7 +10,7 @@ The protocol architecture consists of three primary phases: **Request Orchestrat
 
 ## 5.2 Request Orchestration and Routing
 
-The request orchestration phase transforms user inference requests into distributed execution plans that maximize performance while respecting credit balances and network constraints. This process begins when users submit queries through regional gateways, which implement sophisticated routing algorithms that consider multiple optimization criteria simultaneously.
+The request orchestration phase transforms user inference requests into distributed execution plans that maximize performance while respecting credit balances and network constraints. This process begins when users submit queries through regional gateways, which implement routing algorithms that consider multiple optimization criteria simultaneously.
 
 ### 5.2.1 Authentication and Credit Verification
 
@@ -34,30 +34,32 @@ The authentication algorithm implements a two-phase commit protocol that prevent
 
 ### 5.2.2 Intelligent Cluster Selection
 
-The cluster selection algorithm represents one of DIP's most sophisticated components, balancing multiple competing objectives to optimize both individual request performance and overall network efficiency. The algorithm considers cluster computational capacity, current load, geographic proximity to the user, model availability, and historical performance metrics.
+The cluster selection algorithm is the load-balancing core of the routing layer, balancing multiple competing objectives to optimize both individual request performance and overall network efficiency. The algorithm considers cluster computational capacity, current load, geographic proximity to the user, model availability, and historical performance metrics.
 
 ```pseudocode
 ALGORITHM: OptimalClusterSelection
 INPUT: authenticated_request, available_clusters, network_state
 OUTPUT: selected_cluster, execution_plan
 
-1. FOR each cluster IN available_clusters DO
-2.    CALCULATE latency_score = estimate_network_latency(user_location, cluster)
-3.    CALCULATE capacity_score = cluster.available_compute / cluster.total_compute
-4.    CALCULATE model_score = model_availability(request.model, cluster)
-5.    CALCULATE load_score = 1.0 - (cluster.current_load / cluster.max_load)
-6.    composite_score = w1*latency_score + w2*capacity_score + w3*model_score + w4*load_score
-7. END FOR
-8. selected_cluster = cluster WITH maximum composite_score
-9. GENERATE execution_plan(request, selected_cluster.topology)
-10. RETURN selected_cluster, execution_plan
+1. scores = empty_map  // cluster -> composite_score
+2. FOR each cluster IN available_clusters DO
+3.    latency_score   = estimate_network_latency(user_location, cluster)
+4.    capacity_score  = cluster.available_compute / cluster.total_compute
+5.    model_score     = model_availability(request.model, cluster)
+6.    load_score      = 1.0 - (cluster.current_load / cluster.max_load)
+7.    scores[cluster] = w1*latency_score + w2*capacity_score
+                      + w3*model_score   + w4*load_score
+8. END FOR
+9. selected_cluster = argmax(scores)
+10. execution_plan  = GENERATE_execution_plan(request, selected_cluster.topology)
+11. RETURN selected_cluster, execution_plan
 ```
 
 The weighting parameters (w1, w2, w3, w4) adapt dynamically based on network conditions and user preferences, with latency optimization receiving higher priority during peak usage periods and capacity optimization dominating during off-peak hours [67].
 
 ## 5.3 Distributed Model Sharding and Execution
 
-The distributed execution phase implements novel model sharding techniques specifically optimized for transformer architectures running on heterogeneous consumer hardware. Unlike traditional approaches that partition models statically across homogeneous nodes, DIP employs dynamic sharding that adapts to real-time hardware capabilities and network conditions.
+The distributed execution phase implements model sharding techniques specifically optimized for transformer architectures running on heterogeneous consumer hardware. Unlike traditional approaches that partition models statically across homogeneous nodes, DIP employs dynamic sharding that adapts to real-time hardware capabilities and network conditions.
 
 ### 5.3.1 Adaptive Transformer Partitioning
 
@@ -111,7 +113,7 @@ OUTPUT: inference_result, performance_metrics
 14. RETURN inference_result, performance_metrics
 ```
 
-The execution algorithm implements sophisticated fault tolerance mechanisms that maintain inference integrity even when individual nodes fail or behave maliciously. **Redundant Computation** executes critical model segments on multiple nodes, enabling rapid recovery from failures. **Consensus Validation** ensures that intermediate results are consistent across nodes before proceeding to subsequent pipeline stages. **Adaptive Rescheduling** dynamically reassigns computation when nodes become unavailable, maintaining inference progress without complete restart [69].
+The execution algorithm implements fault tolerance mechanisms that maintain inference integrity even when individual nodes fail or behave maliciously. **Redundant Computation** executes critical model segments on multiple nodes, enabling rapid recovery from failures. **Consensus Validation** ensures that intermediate results are consistent across nodes before proceeding to subsequent pipeline stages. **Adaptive Rescheduling** dynamically reassigns computation when nodes become unavailable, maintaining inference progress without complete restart [69].
 
 ## 5.4 Latency Optimization and Performance Guarantees
 
@@ -137,35 +139,39 @@ DeCLAI provides three tiers of performance guarantees that accommodate different
 
 ## 5.5 Fault Tolerance and Recovery Mechanisms
 
-The distributed nature of DeCLAI requires sophisticated fault tolerance mechanisms that maintain service availability despite node failures, network partitions, and malicious behavior. The protocol implements multiple layers of redundancy and recovery that ensure inference requests complete successfully even under adverse conditions.
+The distributed nature of DeCLAI requires fault tolerance mechanisms that maintain service availability despite node failures, network partitions, and malicious behavior. The protocol implements multiple layers of redundancy and recovery that ensure inference requests complete successfully even under adverse conditions.
 
 ### 5.5.1 Byzantine Fault Tolerance for Inference Validation
 
-DeCLAI implements a novel Byzantine fault tolerance protocol specifically designed for distributed inference workloads. Unlike traditional BFT systems that focus on transaction ordering, the inference BFT protocol validates computational correctness while maintaining the performance characteristics required for real-time applications.
+DeCLAI uses a redundant-execution validation protocol — not a full pBFT consensus over transaction order, but result-agreement voting with explicit floating-point tolerance for the cross-architecture non-determinism of GPU inference. Naive bitstring voting will fail when honest contributors run the same forward pass on different GPU architectures: cuBLAS reduction orders, transcendental implementations, and CUDA driver versions can produce numerically distinct but semantically equivalent activations, which under low-temperature sampling lead to identical argmax decisions on most tokens but different bitstrings overall. The protocol therefore compares results at an explicit tolerance $\varepsilon$.
 
 ```pseudocode
-ALGORITHM: ByzantineFaultTolerantInference
-INPUT: computation_task, node_assignments, fault_threshold
-OUTPUT: validated_result, confidence_score
+ALGORITHM: RedundantExecutionValidation
+INPUT:  computation_task,          // the inference request
+        node_assignments,          // n = 3f+1 assigned contributors
+        f,                         // Byzantine tolerance, f < n/3
+        epsilon,                   // comparison tolerance (per-token logit)
+        timeout
+OUTPUT: validated_result, confidence_score, dissenters
 
-1. ASSIGN computation_task TO primary_nodes AND backup_nodes
-2. PARALLEL_EXECUTE computation ON all_assigned_nodes
-3. COLLECT results FROM all_responding_nodes
-4. FOR each unique_result IN collected_results DO
-5.    supporting_nodes = count_nodes_with_result(unique_result)
-6.    IF supporting_nodes >= (2*fault_threshold + 1) THEN
-7.       validated_result = unique_result
-8.       confidence_score = supporting_nodes / total_nodes
-9.       BREAK
-10.   END IF
-11. END FOR
-12. IF no_consensus_reached THEN
-13.    TRIGGER extended_validation_protocol(computation_task)
+1. PARALLEL_EXECUTE computation_task ON node_assignments WITH timeout
+2. results = COLLECT_responses()
+3. clusters = group_results_by_epsilon_equivalence(results, epsilon)
+4.            // two results are in the same cluster if their
+            // per-token logit vectors agree within epsilon
+5. winning_cluster = argmax over clusters of |cluster|
+6. IF |winning_cluster| >= 2f + 1 THEN
+7.    validated_result  = canonical_result(winning_cluster)
+8.    confidence_score  = |winning_cluster| / |results|
+9.    dissenters        = node_assignments \ winning_cluster
+10.   RETURN (validated_result, confidence_score, dissenters)
+11. ELSE
+12.   // no result has 2f+1 supporters within epsilon
+13.   TRIGGER extended_validation(computation_task, fresh_node_set)
 14. END IF
-15. RETURN validated_result, confidence_score
 ```
 
-The BFT protocol tolerates up to f malicious nodes out of 3f+1 total nodes while maintaining computational efficiency through optimistic execution and lazy validation. This approach enables DeCLAI to provide strong consistency guarantees without the performance penalties associated with traditional consensus mechanisms [72].
+The protocol tolerates up to $f$ Byzantine contributors out of $n = 3f+1$ assigned nodes — the standard pBFT bound — while accommodating numerical heterogeneity through $\varepsilon$-tolerance grouping rather than exact bitstring voting. The `dissenters` set is reported to the reputation system; persistently dissenting contributors lose trust weight over time. Note that this is *not* a full pBFT instance (no view change, no primary, no sequence number ordering); it is a one-shot result-agreement vote that piggybacks on pBFT's threshold structure. The credit ledger itself, which does require transaction ordering across gateways, runs a separate pBFT instance described in §3.4 [72].
 
 ### 5.5.2 Adaptive Recovery and Rescheduling
 
@@ -188,24 +194,26 @@ The DeCLAI API implements a framework-agnostic interface that supports PyTorch, 
 ```pseudocode
 INTERFACE: DeCLAIInferenceAPI
 METHODS:
-  initialize_session(model_id, framework_type, performance_tier)
-  submit_inference(input_data, generation_parameters)
-  get_inference_status(request_id)
-  retrieve_results(request_id)
-  estimate_cost(model_id, input_length, generation_parameters)
-  get_available_models(filter_criteria)
+  initialize_session(model_id, framework_type, performance_tier) -> session
+  submit_inference(input_data, generation_parameters)            -> request_id
+  get_inference_status(request_id)                               -> status
+  retrieve_results(request_id)                                   -> result
+  estimate_cost(model_id, input_length, generation_parameters)   -> credits
+  get_available_models(filter_criteria)                          -> [model_id]
 
 EXAMPLE_USAGE:
-session = DeCLAI.initialize_session("llama2-70b", "pytorch", "priority")
-request_id = session.submit_inference(input_tokens, max_length=512)
-results = session.retrieve_results(request_id)
+session    = DeCLAI.initialize_session("llama2-70b", "pytorch", "priority")
+request_id = session.submit_inference(
+                input_data            = input_tokens,
+                generation_parameters = {"max_length": 512})
+results    = session.retrieve_results(request_id)
 ```
 
 The API design prioritizes developer experience while maintaining the flexibility required for diverse application requirements. **Asynchronous Operations** enable non-blocking inference requests that integrate naturally with modern application architectures. **Batch Processing** supports efficient handling of multiple requests while maintaining individual request tracking and result delivery. **Streaming Responses** provide real-time token generation for interactive applications that require immediate feedback [73].
 
 ### 5.6.2 Model Deployment and Version Management
 
-DeCLAI implements sophisticated model deployment mechanisms that enable rapid distribution of new models and updates across the distributed network while maintaining compatibility with ongoing inference requests. The deployment system supports multiple model formats and provides automated conversion tools for popular architectures.
+DeCLAI implements model-deployment mechanisms that enable rapid distribution of new models and updates across the distributed network while maintaining compatibility with ongoing inference requests. The deployment system supports multiple model formats and provides automated conversion tools for popular architectures.
 
 **Automated Model Conversion**: The system includes conversion utilities that transform models from framework-specific formats (PyTorch .pth, TensorFlow SavedModel, ONNX) into DeCLAI's optimized distributed format. These conversions preserve model accuracy while optimizing for distributed execution characteristics [74].
 
@@ -251,6 +259,6 @@ The protocol implements targeted optimizations for each latency component. **Pre
 
 DeCLAI's throughput characteristics scale superlinearly with network size due to several architectural advantages. **Geographic Distribution** enables natural load balancing across time zones, with peak demand in one region served by off-peak capacity in others. **Hardware Heterogeneity** allows optimal task assignment based on specific computational requirements, maximizing utilization of diverse GPU capabilities. **Adaptive Batching** dynamically adjusts batch sizes based on current network conditions and demand patterns.
 
-The system maintains high resource utilization through sophisticated scheduling algorithms that consider multiple optimization criteria simultaneously. **Multi-Objective Optimization** balances latency minimization, throughput maximization, and fair resource allocation across participants. **Dynamic Load Balancing** continuously redistributes work based on real-time performance monitoring and predictive demand modeling.
+The system maintains high resource utilization through scheduling algorithms that consider multiple optimization criteria simultaneously. **Multi-Objective Optimization** balances latency minimization, throughput maximization, and fair resource allocation across participants. **Dynamic Load Balancing** continuously redistributes work based on real-time performance monitoring and predictive demand modeling.
 
 Through this comprehensive distributed inference protocol, DeCLAI demonstrates that community-driven distributed computing can achieve the performance, reliability, and scalability characteristics required for production AI applications while maintaining the democratic accessibility that distinguishes it from centralized alternatives. The technical innovations presented in this section enable the economic and social benefits described in subsequent sections, creating a foundation for truly democratized AI inference capabilities.

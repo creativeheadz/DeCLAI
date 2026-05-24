@@ -63,19 +63,20 @@ The Proof of Inference protocol operates through challenge-response mechanisms e
 3. **Result Validation**: Output verification through consensus with other nodes
 4. **Hardware Attestation**: Signatures proving computation occurred on declared hardware
 
-The computational proof employs zero-knowledge techniques that allow nodes to demonstrate work completion without revealing model weights or intermediate computations. The protocol generates random challenges that require access to model parameters and produce verifiable outputs that cannot be precomputed or forged [52].
+A general-purpose zero-knowledge proof of LLM inference correctness — proving "this output was produced by running model M on prompt P" without revealing weights or intermediate activations — is an active research direction (see the discussion of zkLLM and related zkML work in §6.2.3) but is not deployable today at the parameter counts targeted by DeCLAI. The credit-validation protocol therefore does not rely on a zk-proof of inference. Instead, it uses three layered, deployable mechanisms:
 
-**Theorem 4.1**: Under the Proof of Inference protocol, generating fraudulent credits requires computational work exceeding the cost of honest participation.
+1. **Redundant execution.** Inference requests subject to validation are executed by $f+1$ independent contributors (where $f$ is the cluster's Byzantine tolerance). Results are compared with an explicit floating-point tolerance $\varepsilon$ to account for cross-architecture non-determinism (cuBLAS reduction order, GPU-arch-dependent transcendental implementations). Credits are issued only when at least $f+1$ results agree within $\varepsilon$.
+2. **Challenge–response audits.** A randomly sampled fraction of completed inferences is re-executed by an independent verifier set, with disagreement triggering a reputation penalty for the original contributors.
+3. **Reputation weighting.** Contributors with longer honest history receive higher trust weights and may be sampled less aggressively for redundant execution; newly joined contributors are sampled more heavily until reputation is established.
 
-*Proof*: Consider an adversary attempting to generate credits without performing legitimate inference. The adversary must either (1) forge computational proofs, (2) pre-compute challenge responses, or (3) obtain results through alternative means.
+**Property 4.1 (informal).** *Under the validation protocol above, a single contributor cannot earn credit for inference work it did not perform without either (i) colluding with at least $f$ other validators in the same cluster, or (ii) acquiring the correct output by re-running the model itself (i.e., performing the work) or by querying an external inference service. In case (ii), the attacker's cost is at least the honest work cost.*
 
-Forging computational proofs requires breaking the underlying cryptographic commitments, which has complexity equivalent to solving discrete logarithm problems over elliptic curves—computationally infeasible with current technology [53].
+This is a property, not a theorem: a rigorous statement requires (a) a concrete assumption on cluster composition (independent Byzantine sampling), (b) an explicit cost model that includes the price of acquiring an honest result from an external API, and (c) a security parameter governing the audit sampling rate. A formal treatment is left to future work.
 
-Pre-computing challenge responses requires advance knowledge of random challenges generated from network entropy sources. The challenge space has cardinality 2^256, making exhaustive pre-computation impossible within the system's credit expiration timeframes.
+Two attack patterns warrant explicit acknowledgement:
 
-Obtaining results through alternative means (such as using centralized AI services) costs more than the credits earned, as the system's credit rates reflect competitive market pricing for computational resources. □
-
-The system also implements reputation-based validation where nodes with established histories of honest behavior receive increased trust weights in consensus protocols. This creates additional barriers for attackers while streamlining verification for legitimate participants [54].
+- **Cache-and-replay on popular prompts.** A contributor can cache outputs for frequent prompts and return them in microseconds. Timing signatures alone cannot distinguish this from legitimately faster hardware. Mitigation: include a per-request nonce in the prompt that perturbs the activation trace and forces a fresh forward pass, accepting a small quality cost. This mitigation is partial and is itself a research direction.
+- **Sybil attack at scale.** An attacker with cheap identity creation can place $f+1$ colluding nodes in a single cluster and defeat redundant execution. DeCLAI's defenses here are reputation bootstrap, optional hardware attestation where available (e.g. TPM, NVIDIA Confidential Computing on supported SKUs), and probabilistic cross-cluster verification. None of these defenses is complete, and Sybil resistance under open membership remains an open problem inherited from the volunteer-computing literature [54].
 
 ## 4.4 Credit Lifecycle and Flow Management
 
@@ -97,31 +98,39 @@ Generation → Validation → Circulation → Consumption → Expiration
 
 **Expiration Phase**: Unused credits expire after 365 days to prevent excessive accumulation and maintain system liquidity. Expiration creates gentle pressure for credit utilization while providing sufficient time for normal usage patterns.
 
-The credit flow system maintains several invariants that ensure economic stability:
-- Total credits in circulation never exceed 110% of trailing 30-day consumption
-- No single participant can accumulate more than 5% of total network credits
-- Credit generation rates adjust automatically to maintain 95-105% utilization ratios
+The credit flow system aims to maintain three operational invariants (note: these are *design targets*, not theorems — their attainment depends on the rate-adjustment mechanism described below):
+- The total stock of unspent credits $S(t)$ should track the trailing 30-day rolling consumption integral $\int_{t-30d}^{t} C(\tau)\,d\tau$ such that $S(t) \le 1.10 \cdot \int_{t-30d}^{t} C(\tau)\,d\tau$. The factor 1.10 provides a 10% buffer for short-term consumption spikes; under sustained spike conditions the rate-adjustment mechanism (below) increases consumption-side prices to expand the buffer rather than rationing requests.
+- No single participant holds more than 5% of $S(t)$. Excess accumulation triggers a cap that converts further earned credits into a non-spendable reputation bonus.
+- The instantaneous utilisation ratio $C(t)/G(t)$ is targeted at $0.95$–$1.05$ via the rate adjustment $\alpha_{network}(t)$ defined below.
 
-## 4.5 Economic Equilibrium and Long-term Sustainability
+## 4.5 Equilibrium Targets and Open Dynamic-Stability Questions
 
-The DeCLAI credit system achieves long-term sustainability through self-regulating mechanisms that maintain economic equilibrium without external intervention. We model the system dynamics using differential equations that capture the interaction between credit generation, consumption, and network growth [58].
+The credit mechanism is intended to be **self-regulating** in the sense that the generation rate per GPU-hour and the consumption rate per inference request can both be adjusted in response to observed network state, without external monetary intervention. We sketch the intended dynamics below. We do **not** claim a closed-form stability result; doing so rigorously would require both (a) a complete specification of the rate-adjustment controller and (b) a behavioural model of contributor and consumer responses to rate changes. We treat dynamic stability as an open question to be settled empirically in deployment.
 
-Let `G(t)` represent total credit generation rate at time `t`, `C(t)` represent consumption rate, and `N(t)` represent active network participants. The system equilibrium satisfies:
+Let $G(t)$ be the instantaneous credit generation rate (credits issued per unit time), $C(t)$ be the consumption rate (credits spent per unit time), $S(t)$ be the unspent credit stock, $N(t)$ be the number of active contributors, and $D(t)$ be the number of active consumers. The bookkeeping equations are:
 
-```
-dG/dt = k₁ × N(t) × (1 - G(t)/G_max)
-dC/dt = k₂ × U(t) × (C_demand/C_available)
-dN/dt = k₃ × (Value_proposition - Participation_cost)
-```
+$$
+\frac{dS}{dt} \;=\; G(t) - C(t) - \lambda \, S(t),
+$$
 
-Where `k₁`, `k₂`, `k₃` are system parameters, `G_max` is maximum sustainable generation, `U(t)` is user demand, and the value proposition reflects the benefits of network participation [59].
+where $\lambda$ is the credit decay rate (set so that credits halve over a configurable lifetime; see §7.3). Generation and consumption are tied to network state through a single multiplicative rate parameter $\alpha_{network}(t) \in (0, \infty)$ that the protocol adjusts as a controller variable:
 
-Stability analysis reveals that the system converges to equilibrium when:
-1. Network effects create increasing returns to participation
-2. Credit demand grows proportionally with network size
-3. Generation difficulty adjusts to maintain supply-demand balance
+$$
+G(t) \;=\; \alpha_{network}(t)\cdot \bar{g}\cdot N_{eff}(t), \qquad
+C(t) \;=\; \frac{1}{\alpha_{network}(t)}\cdot \bar{c}\cdot D_{eff}(t),
+$$
 
-The mathematical model predicts that networks exceeding 1,000 active participants achieve stable, self-sustaining operation with minimal external intervention. Smaller networks require bootstrap incentives during initial growth phases, while larger networks naturally maintain equilibrium through market mechanisms.
+where $\bar{g}$ is the baseline credit-per-GPU-hour rate, $\bar{c}$ is the baseline credit-per-inference-request cost, and $N_{eff}$ and $D_{eff}$ are reputation- and capability-weighted active counts (see §7.1). Increasing $\alpha_{network}$ rewards contributors more per GPU-hour and charges consumers more per request, both of which act to *reduce* an excess of demand over supply.
+
+At a fixed point ($dS/dt = 0$), the controller satisfies
+
+$$
+\alpha_{network}^{2} \;=\; \frac{\bar{c}\, D_{eff} \,+\, \lambda\, S}{\bar{g}\, N_{eff}}.
+$$
+
+This identifies the static balance, not stability. The controller's dynamic behaviour — its response time, overshoot, and robustness to strategic behaviour by participants — is governed by an adjustment law (e.g. proportional, PI, or model-predictive) that we leave as an implementation choice. Whether any such controller can hold the utilisation target under realistic demand patterns is, in our view, a question that can only be answered through a working deployment.
+
+We *conjecture* that small networks (on the order of tens to low hundreds of active contributors) will require external bootstrap incentives — for example, an initial credit endowment for new joiners — and that beyond some threshold, network effects make sustained operation feasible. We do not claim a specific threshold number; the figure of "1,000 active participants" that appeared in an earlier draft of this paper was a placeholder, not a derived bound.
 
 ## 4.6 Comparison with Existing Distributed Computing Systems
 
